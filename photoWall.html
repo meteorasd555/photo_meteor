@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="en" class="no-js"><!--<![endif]-->
+<html lang="en"><!--<![endif]-->
 <head>
     <meta charset="utf-8">
     <title>photo</title>
-    <meta name="description" content="Easy HTML5 Template">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0"/> 
     <meta name="author" content="">
     <link rel="stylesheet" href="css/reset.css">
     <link rel="stylesheet" href="css/common.css">
@@ -24,7 +24,9 @@
 		.ft24 {
 			font-size:24px;
 		}
-		
+		.ftAcme {
+			font-family:'acme';
+		}
 		.mb20 {
 			margin-bottom:20px;
 		}
@@ -42,7 +44,6 @@
 			float:left;
 			left:20px;
 			top:10px;
-			font-family:'acme';
 			color:#FFF;
 			text-shadow: -1px 1px #666;
 		}
@@ -88,6 +89,22 @@
 			margin-left:12px;
 			display:inline;
 			float:left;
+		}
+		.loading-tip {
+			height:50px;
+			line-height:50px;
+			text-align:center;
+			background:#CCC;
+			color:#FFF;
+		}
+		.footer {
+			height: 60px;
+			line-height: 60px;
+			font-size: 16px;
+			font-weight: bold;
+			color: #998;
+			text-indent: 20px;
+			border-top:solid 2px #998;
 		}
 		@media screen and (max-width:490px){
 				.body-wrapper {
@@ -135,32 +152,35 @@
 </head>
 <body>
 	<div class="body-wrapper ">
-	<header class="header mb20">
-		<h1 class="logo ft24">Photo Meteor</h1> 
-	</header>
-	<section id="flow1" class="photoflow-wrapper">
-		<!--<div class="flowunit">
-			<div class="flowunit-imgbox">
-				<img src="content/1.jpg"/>
-				<div class="flowunit-tipheader">	
+		<header class="header mb20">
+			<h1 class="logo ft24 ftAcme">Photo Meteor</h1> 
+		</header>
+		<section id="flow1" class="photoflow-wrapper">
+			<!--<div class="flowunit">
+				<div class="flowunit-imgbox">
+					<img src="content/1.jpg"/>
+					<div class="flowunit-tipheader">	
+					</div>
+				</div>
+				<div class="flowunit-title">
+					我们还未知道那天看到那朵花的名字,多美丽的瞬间								
 				</div>
 			</div>
-			<div class="flowunit-title">
-				我们还未知道那天看到那朵花的名字,多美丽的瞬间								
-			</div>
-		</div>
-		-->
-		
-		<ul class="photoflow" style="display:none">
-			<li>
-				
-				<div class="flowunit"></div>
-			</li>
-		</ul>
-		
-		
-	</section>
-	
+			-->
+			
+			<ul class="photoflow" style="display:none">
+				<li>
+					
+					<div class="flowunit"></div>
+				</li>
+			</ul>
+			
+			
+		</section>
+		<div class="loading-tip ft24 ftAcme mb20">Loading .... </div>
+		<footer class="footer">
+			<p>@copyright meteorasd555</p>
+		</footer>
 	</div>
 	<script src="js/jquery-1.7.1.js"></script>
 	<script>
@@ -207,6 +227,12 @@
 				},
 				loadData: function(data) {
 					var cells = this.createCells(data);
+					this.addCells(cells);
+				},
+				reLoadData: function() {
+					var cells = this.createCells(data);
+					this.cells = [];
+					this.reflow();
 					this.addCells(cells);
 				},
 				reflow: function() {
@@ -314,26 +340,6 @@
 							return i;
 						}
 					}
-				},
-				_getFakeData: function(num) {	
-					var i = 0, arRet = [], unit;
-					var config = this.getConfig();
-					for(i;i < num;i++) {
-						unit = {
-							width:config.unitWidth,
-							height:getRandomHeight(200,500),
-							src:"http://myst729.github.io/Waterfall/img/"+ (i + 1)+".jpg",
-							title:"this is fake No. " + i + " picture"
-						}
-						arRet.push(unit);
-					}
-					
-					return arRet;
-					
-					function getRandomHeight(min,offset) {
-						return min + Math.round(offset*(Math.random()));
-					}
-				
 				}
 			};
 			
@@ -346,51 +352,94 @@
 					var flow = new Flow({unitWidth:230,container:document.getElementById("flow1")});
 					var PAGE_CONTEXT = $({});
 					
+					var Loader = (function(option) {
+						
+						var config,cache = [], recordNum = 0, cachedCount = 0., loading = false;
+					
+						// default value
+						var defaultConfig = {
+							initDataNum:20, 	/* amount of first feching data*/
+							increaseOffset:12,  /* get data when scroll */
+							cacheSize:100 		/* amount of cache data */
+						}
+					
+						config = $.extend({}, defaultConfig, option);
+						
+						function getLoadPromise(exData) {
+						
+							if(loading) {
+								return null;
+							}
+							
+							
+									
+							if(recordNum == 0) {
+								recordNum += config.initDataNum;
+								return requstProxy(0, config.initDataNum, exData);
+							} else {
+								recordNum += config.increaseOffset;
+								return requstProxy(recordNum, config.increaseOffset, exData);
+							}
+	
+						}
+						
+						var requstProxy = function (from, offset, exData) {
+						
+							var promise = $.Deferred();
+						
+							// haven't cache enough data, get from server first	
+							if(from + offset > cachedCount) {
+								loading = true;
+								$.getJSON('test', {sn: from, on: offset}, function(data){
+								
+									// cache data
+									cache = cache.concat(data);
+									cachedCount += config.cacheSize;
+									
+									// resolve
+									promise.resolve(getCachedData(from, offset));
+
+									//
+									loading = false;
+								});
+								
+							} else {
+								// get data from cache, resolve directly
+								promise.resolve(getCachedData(from, offset));
+								
+								//
+								loading = false;
+							}
+							
+							function getCachedData(from, offset) {
+								return cache.slice(from, from + offset);
+							}
+							return promise;
+						}
+						
+						return {
+							getLoadPromise:getLoadPromise
+						}
+						
+					})();
+					
+					;
+					
 					PAGE_CONTEXT.on("fetchdata", function(){
-						var data = getFakeData(10);
-						flow.loadData(data);
+						var pms = Loader.getLoadPromise({kw:"狗"});
+						if(!pms) {
+							return;
+						}
+						$.when(pms).done(function(data){
+							flow.loadData(data);
+						})
+						//var data = getFakeData(10);
+						//flow.loadData(data);
 					});
 					PAGE_CONTEXT.trigger("fetchdata");
 					
-					var reflowDelayHandler = (function() {
-						var timeId;	
-						return function() {
-							clearTimeout(timeId);
-							timeId = setTimeout(function(){
-								flow.adjustCol();
-							},300);
-						}
-					})();
-				
-					var scrollHandler = function(){
-						var scrollHeight = document.documentElement.scrollHeight,
-							scrollTop = 0, offsetTop = 160;								
-						if(Util.isIE()){
-							scrollTop = document.documentElement.scrollTop;
-						} else {
-							scrollTop = document.body.scrollTop;
-						}
-						if(offsetTop + flow.getMinColHeight() < scrollTop + document.documentElement.clientHeight) {
-						 PAGE_CONTEXT.trigger("fetchdata");
-						}					
-					}
+					
 			
-					var addEvent = function(element, type, handler) {
-						if(element.addEventListener) {
-							addEvent = function(element, type, handler) {
-								element.addEventListener(type, handler, false);
-							};
-						} else if(element.attachEvent) {
-							addEvent = function(element, type, handler) {
-								element.attachEvent('on' + type, handler);
-							};
-						} else {
-							addEvent = function(element, type, handler) {
-								element['on' + type] = handler;
-							};
-						}
-						addEvent(element, type, handler);
-					};
 					
 					
 					function getFakeData(num) {
@@ -404,7 +453,7 @@
 							}
 							arRet.push(unit);
 						}
-						
+					
 						return arRet;
 						
 						function getRandomHeight(min,offset) {
@@ -412,7 +461,51 @@
 						}
 					}
 					
+					
 					function init() {
+						var reflowDelayHandler = (function() {
+						var timeId;	
+							return function() {
+								clearTimeout(timeId);
+								timeId = setTimeout(function(){
+									flow.adjustCol();
+								},300);
+							}
+						})();
+					
+						var addEvent = function(element, type, handler) {
+							if(element.addEventListener) {
+								addEvent = function(element, type, handler) {
+									element.addEventListener(type, handler, false);
+								};
+							} else if(element.attachEvent) {
+								addEvent = function(element, type, handler) {
+									element.attachEvent('on' + type, handler);
+								};
+							} else {
+								addEvent = function(element, type, handler) {
+									element['on' + type] = handler;
+								};
+							}
+							addEvent(element, type, handler);
+						};
+					
+				
+						var scrollHandler = function(){
+							var scrollHeight = document.documentElement.scrollHeight,
+								scrollTop = 0, offsetTop = 160;								
+							if(Util.isIE()){
+								scrollTop = document.documentElement.scrollTop;
+							} else {
+								scrollTop = document.body.scrollTop;
+							}
+							if(offsetTop + flow.getMinColHeight() < scrollTop + document.documentElement.clientHeight) {
+							   PAGE_CONTEXT.trigger("fetchdata");
+							}					
+						}
+					
+					
+					
 						addEvent(window, 'resize', reflowDelayHandler);
 						addEvent(window, 'scroll', scrollHandler);
 					}
