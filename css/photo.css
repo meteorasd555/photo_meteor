@@ -37,52 +37,7 @@
 			vertical-align: middle;
 			outline:none;
 		}
-		.photoflow-wrapper {
-			position:relative;
-			min-height:1200px;
-			_height:1200px;
-		}
-		.photoflow-wrapper > div {
-			-webkit-transition:opacity 0.6s linear;
-            -moz-transition:opacity 0.6s linear;
-            transition:opacity 0.6s linear;
-		}
-		.flowunit {
-			background:#EEE;
-			position:relative;
-			overflow:hidden;
-			width:230px;
-			border-radius:3px;
-            margin:0 auto;
-            *margin:0; /* fix in lt ie8 */
-		}
 		
-		.flowunit-imgbox {
-			margin:10px;
-			position:relative;
-		}
-		.flowunit img{
-			width:210px;
-			display:block;
-			background:#FFF;
-		}
-		.flowunit-tipheader {
-			position:absolute;
-			top:0;
-			height:50px;
-			width:100%;	
-		}
-		.flowunit-title {
-			margin:0 10px;
-			padding-bottom:10px;
-			font-size:13px;
-			color:#4F4F4F;
-		}
-		.photoflow {
-			margin-left:12px;
-			display:inline;
-			float:left;
-		}
 		.bottom-tip {
 			height:50px;
 			line-height:50px;
