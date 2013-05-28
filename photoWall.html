@@ -24,8 +24,14 @@
 		.ft24 {
 			font-size:24px;
 		}
+		.ft14 {
+			font-size:14px;
+		}
 		.ftAcme {
 			font-family:'acme';
+		}
+		.ftBold {
+			font-weight:bold;
 		}
 		.mb20 {
 			margin-bottom:20px;
@@ -35,24 +41,42 @@
 			width: 980px;/* for no media query client*/
 		}
 		.header {
+			position:relative;
 			height:60px;
 			background:#998;
-		
 		}
 		.logo {
 			position:relative;
 			float:left;
 			left:20px;
-			top:10px;
+			top:12px;
 			color:#FFF;
 			text-shadow: -1px 1px #666;
 		}
-		.carousel-wrapper {
-			height:100px;
-			border-bottom:solid 2px #CCC;
+		.searchbar {
+			position:absolute;
+			right:20px;
+			top:10px;
+		}
+		.search {
+			height:30px;
+			line-height:30px;
+			width:300px;
+			text-indent:1em;
+			vertical-align:middle;
+			outline:none;
+		}
+		.search-btn {
+			text-decoration: none;
+			color: #FFF;
+			margin-left: 13px;
+			line-height: 30px;
+			vertical-align: middle;
 		}
 		.photoflow-wrapper {
 			position:relative;
+			min-height:1200px;
+			_height:1200px;
 		}
 		.flowunit {
 			background:#EEE;
@@ -60,9 +84,9 @@
 			overflow:hidden;
 			width:230px;
 			border-radius:3px;
-            /*margin:0 auto;*/
+            margin:0 auto;
+            *margin:0; /* fix in lt ie8 */
 		}
-		
 		
 		.flowunit-imgbox {
 			margin:10px;
@@ -146,7 +170,9 @@
  
 		}
 		.photoflow-wrapper > div {
-			-webkit-transition:opacity 1s linear;
+			-webkit-transition:opacity 0.6s linear;
+            -moz-transition:opacity 0.6s linear;
+            transition:opacity 0.6s linear;
 		}
 	</style>
 </head>
@@ -154,6 +180,9 @@
 	<div class="body-wrapper ">
 		<header class="header mb20">
 			<h1 class="logo ft24 ftAcme">Photo Meteor</h1> 
+			<div class="searchbar">
+				<input class="search ftBold ft14" id="searchInput" type="text" placeholder=""/><a class="search-btn" id="searchBtn" href="javascript:void(0);">搜一搜</a>
+			</div>
 		</header>
 		<section id="flow1" class="photoflow-wrapper">
 			<!--<div class="flowunit">
@@ -190,6 +219,9 @@
 				},
                 isMozilla: function() {
                 	return (navigator.userAgent.indexOf("Mozilla") != -1);
+                },
+                isWebKit: function() {
+                	return (navigator.userAgent.indexOf("WebKit") != -1);
                 }
 				
 			}
@@ -232,8 +264,9 @@
 					var cells = this.createCells(data);
 					this.addCells(cells);
 				},
-				reLoadData: function() {
+				reLoadData: function(data) {
 					var cells = this.createCells(data);
+					this.ctn.innerHTML = "";
 					this.cells = [];
 					this.reflow();
 					this.addCells(cells);
@@ -280,7 +313,7 @@
 				
 					var _getMinKey = this._getMinKey, len = arCells.length,insertColIdx = 0, cell,  config = this.getConfig(), crtH, docFrag = document.createDocumentFragment();
 					
-					for(var i=0;i < len; i++) {	
+	     			for(var i=0;i < len; i++) {	
 						cell = arCells[i];	
 						
 						// append to body first
@@ -291,6 +324,8 @@
 					}
 					
 					this.ctn.appendChild(docFrag);
+					// hide container ao void reflow frequently 
+	
 					
 					for(var i=0;i < len; i++) {	
 						cell = arCells[i];
@@ -312,6 +347,7 @@
 						cell.style.opacity = "1";
 						
 					}
+
 					this.ctn.style.height = this.getMaxColHeight() + "px";
 				},
 				adjustCol: function() {
@@ -358,29 +394,37 @@
 					
 					var Loader = (function(option) {
 						
-						var config,cache = [], recordNum = 0, cachedCount = 0., loading = false;
+						var config,cache = [], recordNum = 0, cachedCount = 0, cachedExData = {}, loading = false;
 					
 						// default value
 						var defaultConfig = {
-							initDataNum:30, 	/* amount of first feching data*/
+							initDataNum:25, 	/* amount of first feching data*/
 							increaseOffset:20,  /* get data when scroll */
 							cacheSize:100 		/* amount of cache data */
 						}
 					
 						config = $.extend({}, defaultConfig, option);
 						
-						function getLoadPromise(exData) {
-						
+						function getLoadPromise(exData ,clearFetchFlag) {
+								
+							// if is loading return null 
 							if(loading) {
 								return null;
 							}
 							
-							
-									
+							// clear cache and paging info
+							if(clearFetchFlag && clearFetchFlag == true) {
+								recordNum = 0;
+								cachedCount = 0;
+								cache = [];
+								cachedExData = exData;
+							} 
+						
+				
 							if(recordNum == 0) {
-								return requstProxy(0, config.initDataNum, exData);
+								return requstProxy(0, config.initDataNum, cachedExData);
 							} else {	
-								return requstProxy(recordNum, config.increaseOffset, exData);
+								return requstProxy(recordNum, config.increaseOffset, cachedExData);
 							}
 	
 						}
@@ -392,7 +436,7 @@
 							// haven't cache enough data, get from server first	
 							if(from + offset > cachedCount) {
 								loading = true;
-								$.getJSON('test', {sn: from, on: config.cacheSize}, function(data){
+								$.getJSON('test', $.extend({}, {sn: from, on: config.cacheSize}, exData), function(data){
 								
 									// cache data
 									cache = cache.concat(data);
@@ -427,10 +471,11 @@
 						
 					})();
 					
-					;
 					
-					PAGE_CONTEXT.on("fetchdata", function(){
-						var pms = Loader.getLoadPromise({kw:"狗"});
+					
+					PAGE_CONTEXT.on("fetchdata", function(event){
+						var pms = Loader.getLoadPromise();
+						// null promise
 						if(!pms) {
 							return;
 						}
@@ -440,6 +485,21 @@
 						//var data = getFakeData(10);
 						//flow.loadData(data);
 					});
+					
+					
+					PAGE_CONTEXT.on("fetchnewdata", function(event, data){
+						var pms = Loader.getLoadPromise({kw:data }, true);
+						// null promise
+						if(!pms) {
+							return;
+						}
+						$.when(pms).done(function(data){
+							flow.reLoadData(data);
+						})
+						//var data = getFakeData(10);
+						//flow.loadData(data);
+					});
+					
 					PAGE_CONTEXT.trigger("fetchdata");
 					
 					
@@ -467,7 +527,19 @@
 					
 					
 					function init() {
-						var reflowDelayHandler = (function() {
+					
+						// save search input and search btn
+						var searchInput = document.getElementById("searchInput"),
+							searchBtn = document.getElementById("searchBtn");
+					
+						var searchHandler = function(e) {
+							if(e.type == "keyup" && e.keyCode != 13 ) {
+								return;
+							}
+							PAGE_CONTEXT.trigger("fetchnewdata", searchInput.value);
+						};
+						
+						var resizeDelayHandler = (function() {
 						var timeId;	
 							return function() {
 								clearTimeout(timeId);
@@ -499,21 +571,23 @@
                           
 							var scrollHeight = document.documentElement.scrollHeight,
 								scrollTop = 0, offsetTop = 160;								
-                            if(Util.isIE() || Util.isMozilla){
-								scrollTop = document.documentElement.scrollTop;
+                            if(Util.isWebKit()){
+                              	scrollTop = document.body.scrollTop;
+								
 							} else {
-								scrollTop = document.body.scrollTop;
+								scrollTop = document.documentElement.scrollTop;;
 							}
-                          console.log(document.body.scrollTop);
-							if(offsetTop + flow.getMinColHeight() < scrollTop + document.documentElement.clientHeight) {
-							   PAGE_CONTEXT.trigger("fetchdata");
+                          
+							if(offsetTop + flow.getMinColHeight() < scrollTop + document.documentElement.clientHeight) {							  
+								  PAGE_CONTEXT.trigger("fetchdata");							
 							}					
 						}
-					
-					
-					
-						addEvent(window, 'resize', reflowDelayHandler);
+		
+						addEvent(window, 'resize', resizeDelayHandler);
 						addEvent(window, 'scroll', scrollHandler);
+						addEvent(searchBtn, 'click', searchHandler);
+						addEvent(searchInput, 'keyup', searchHandler);
+						
 					}
 					
 					
