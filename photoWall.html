@@ -60,7 +60,7 @@
 			overflow:hidden;
 			width:230px;
 			border-radius:3px;
-			margin:0 auto;
+            /*margin:0 auto;*/
 		}
 		
 		
@@ -185,9 +185,12 @@
 	<script src="js/jquery-1.7.1.js"></script>
 	<script>
 			Util = {
-				isIE:function() {
+				isIE: function() {
 					return (navigator.userAgent.indexOf("IE") != -1);
-				}
+				},
+                isMozilla: function() {
+                	return (navigator.userAgent.indexOf("Mozilla") != -1);
+                }
 				
 			}
 	
@@ -237,15 +240,15 @@
 				},
 				reflow: function() {
 					var config = this.getConfig();
-					this.contWidth = this.ctn.clientWidth;
+					this.contWidth = this.ctn.offsetWidth;
 					this.colNum = Math.floor(this.contWidth / (config.unitWidth + config.widthGap));
-							
+					
 					// resetHeightArray
 					this.colHeightArray = [];
 					for(var i=0;i < this.colNum; i++) {
 						this.colHeightArray[i] = 0;
 					}
-		
+			
 				},
 				createCells: function(arData) {
 					var i = 0, l = arData.length, unit = {}, cell = null, tmpHtml = [], cells = [];
@@ -335,6 +338,7 @@
 				},
 				_getMinKey: function(arNum) {
 					var i=0;l = arNum.length, min = 0;
+                 
 					for(;i < l;i++) {
 						if(arNum[i] == Math.min.apply(null, arNum)){
 							return i;
@@ -358,8 +362,8 @@
 					
 						// default value
 						var defaultConfig = {
-							initDataNum:20, 	/* amount of first feching data*/
-							increaseOffset:12,  /* get data when scroll */
+							initDataNum:30, 	/* amount of first feching data*/
+							increaseOffset:20,  /* get data when scroll */
 							cacheSize:100 		/* amount of cache data */
 						}
 					
@@ -374,10 +378,8 @@
 							
 									
 							if(recordNum == 0) {
-								recordNum += config.initDataNum;
 								return requstProxy(0, config.initDataNum, exData);
-							} else {
-								recordNum += config.increaseOffset;
+							} else {	
 								return requstProxy(recordNum, config.increaseOffset, exData);
 							}
 	
@@ -390,7 +392,7 @@
 							// haven't cache enough data, get from server first	
 							if(from + offset > cachedCount) {
 								loading = true;
-								$.getJSON('test', {sn: from, on: offset}, function(data){
+								$.getJSON('test', {sn: from, on: config.cacheSize}, function(data){
 								
 									// cache data
 									cache = cache.concat(data);
@@ -398,8 +400,9 @@
 									
 									// resolve
 									promise.resolve(getCachedData(from, offset));
-
+									
 									//
+                                    recordNum += offset;
 									loading = false;
 								});
 								
@@ -408,6 +411,7 @@
 								promise.resolve(getCachedData(from, offset));
 								
 								//
+                              	recordNum += offset;
 								loading = false;
 							}
 							
@@ -492,13 +496,15 @@
 					
 				
 						var scrollHandler = function(){
+                          
 							var scrollHeight = document.documentElement.scrollHeight,
 								scrollTop = 0, offsetTop = 160;								
-							if(Util.isIE()){
+                            if(Util.isIE() || Util.isMozilla){
 								scrollTop = document.documentElement.scrollTop;
 							} else {
 								scrollTop = document.body.scrollTop;
 							}
+                          console.log(document.body.scrollTop);
 							if(offsetTop + flow.getMinColHeight() < scrollTop + document.documentElement.clientHeight) {
 							   PAGE_CONTEXT.trigger("fetchdata");
 							}					
