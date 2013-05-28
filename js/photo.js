@@ -113,8 +113,7 @@ $(function(){
 				}
 				flow.loadData(data);
 			})
-			//var data = getFakeData(10);
-			//flow.loadData(data);
+			
 		});
 		
 		
@@ -134,8 +133,7 @@ $(function(){
 				}
 				flow.reLoadData(data);
 			})
-			//var data = getFakeData(10);
-			//flow.loadData(data);
+		
 		});
 		
 		PAGE_CONTEXT.trigger("fetchdata");
