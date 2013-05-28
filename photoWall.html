@@ -24,8 +24,14 @@
 		.ft24 {
 			font-size:24px;
 		}
+		.ft14 {
+			font-size:14px;
+		}
 		.ftAcme {
 			font-family:'acme';
+		}
+		.ftBold {
+			font-weight:bold;
 		}
 		.mb20 {
 			margin-bottom:20px;
@@ -35,24 +41,44 @@
 			width: 980px;/* for no media query client*/
 		}
 		.header {
+			position:relative;
 			height:60px;
 			background:#998;
-		
 		}
 		.logo {
+			font-size:24px;
 			position:relative;
 			float:left;
 			left:20px;
-			top:10px;
+			top:12px;
 			color:#FFF;
 			text-shadow: -1px 1px #666;
 		}
-		.carousel-wrapper {
-			height:100px;
-			border-bottom:solid 2px #CCC;
+		.searchbar {
+			position:absolute;
+			right:20px;
+			top:12px;
+		}
+		.search {
+			height:30px;
+			line-height:30px;
+			width:350px;
+			text-indent:1em;
+			vertical-align:middle;
+			color: #777;
+		}
+		.search-btn {
+			text-decoration: none;
+			color: #FFF;
+			margin-left: 13px;
+			line-height: 30px;
+			vertical-align: middle;
+			outline:none;
 		}
 		.photoflow-wrapper {
 			position:relative;
+			min-height:1200px;
+			_height:1200px;
 		}
 		.flowunit {
 			background:#EEE;
@@ -60,9 +86,9 @@
 			overflow:hidden;
 			width:230px;
 			border-radius:3px;
-			margin:0 auto;
+            margin:0 auto;
+            *margin:0; /* fix in lt ie8 */
 		}
-		
 		
 		.flowunit-imgbox {
 			margin:10px;
@@ -90,7 +116,7 @@
 			display:inline;
 			float:left;
 		}
-		.loading-tip {
+		.bottom-tip {
 			height:50px;
 			line-height:50px;
 			text-align:center;
@@ -110,6 +136,23 @@
 				.body-wrapper {
 					width:100%;
 				}
+				.header {
+					height:43px;
+				}
+				.searchbar {
+					top:6px;
+					legt:17px;
+				}
+				.search {
+					width:135px;
+					height:26px;
+					line-height:26px;
+				}
+				.logo {
+					font-size: 20px;
+					left: 10px;
+					top: 6px
+				}
 				.photoflow-wrapper > div{
 					position:static!important;
 					margin-bottom:12px;
@@ -118,6 +161,9 @@
 		@media screen and (min-width: 490px) and (max-width: 768px){
 				.body-wrapper {
 					width:490px;
+				}
+				.search {
+					width:200px;
 				}
  
 		}
@@ -146,38 +192,24 @@
  
 		}
 		.photoflow-wrapper > div {
-			-webkit-transition:opacity 1s linear;
+			-webkit-transition:opacity 0.6s linear;
+            -moz-transition:opacity 0.6s linear;
+            transition:opacity 0.6s linear;
 		}
 	</style>
 </head>
 <body>
 	<div class="body-wrapper ">
 		<header class="header mb20">
-			<h1 class="logo ft24 ftAcme">Photo Meteor</h1> 
-		</header>
-		<section id="flow1" class="photoflow-wrapper">
-			<!--<div class="flowunit">
-				<div class="flowunit-imgbox">
-					<img src="content/1.jpg"/>
-					<div class="flowunit-tipheader">	
-					</div>
-				</div>
-				<div class="flowunit-title">
-					我们还未知道那天看到那朵花的名字,多美丽的瞬间								
-				</div>
+			<h1 class="logo ftAcme">Photo Meteor</h1> 
+			<div class="searchbar">
+				<input class="search ftBold ft14" id="searchInput" type="text" placeholder=""/><a class="search-btn" id="searchBtn" href="javascript:void(0);">搜一搜</a>
 			</div>
-			-->
-			
-			<ul class="photoflow" style="display:none">
-				<li>
-					
-					<div class="flowunit"></div>
-				</li>
-			</ul>
-			
-			
+		</header>
+		<section id="flow1" class="photoflow-wrapper mb20">
+
 		</section>
-		<div class="loading-tip ft24 ftAcme mb20">Loading .... </div>
+		<div class="bottom-tip ft24 ftAcme mb20" id="tipBar">Loading .... </div>
 		<footer class="footer">
 			<p>@copyright meteorasd555</p>
 		</footer>
@@ -185,9 +217,15 @@
 	<script src="js/jquery-1.7.1.js"></script>
 	<script>
 			Util = {
-				isIE:function() {
+				isIE: function() {
 					return (navigator.userAgent.indexOf("IE") != -1);
-				}
+				},
+                isMozilla: function() {
+                	return (navigator.userAgent.indexOf("Mozilla") != -1);
+                },
+                isWebKit: function() {
+                	return (navigator.userAgent.indexOf("WebKit") != -1);
+                }
 				
 			}
 	
@@ -229,23 +267,24 @@
 					var cells = this.createCells(data);
 					this.addCells(cells);
 				},
-				reLoadData: function() {
+				reLoadData: function(data) {
 					var cells = this.createCells(data);
+					this.ctn.innerHTML = "";
 					this.cells = [];
 					this.reflow();
 					this.addCells(cells);
 				},
 				reflow: function() {
 					var config = this.getConfig();
-					this.contWidth = this.ctn.clientWidth;
+					this.contWidth = this.ctn.offsetWidth;
 					this.colNum = Math.floor(this.contWidth / (config.unitWidth + config.widthGap));
-							
+					
 					// resetHeightArray
 					this.colHeightArray = [];
 					for(var i=0;i < this.colNum; i++) {
 						this.colHeightArray[i] = 0;
 					}
-		
+			
 				},
 				createCells: function(arData) {
 					var i = 0, l = arData.length, unit = {}, cell = null, tmpHtml = [], cells = [];
@@ -277,7 +316,7 @@
 				
 					var _getMinKey = this._getMinKey, len = arCells.length,insertColIdx = 0, cell,  config = this.getConfig(), crtH, docFrag = document.createDocumentFragment();
 					
-					for(var i=0;i < len; i++) {	
+	     			for(var i=0;i < len; i++) {	
 						cell = arCells[i];	
 						
 						// append to body first
@@ -288,6 +327,8 @@
 					}
 					
 					this.ctn.appendChild(docFrag);
+					// hide container ao void reflow frequently 
+	
 					
 					for(var i=0;i < len; i++) {	
 						cell = arCells[i];
@@ -309,6 +350,7 @@
 						cell.style.opacity = "1";
 						
 					}
+
 					this.ctn.style.height = this.getMaxColHeight() + "px";
 				},
 				adjustCol: function() {
@@ -335,6 +377,7 @@
 				},
 				_getMinKey: function(arNum) {
 					var i=0;l = arNum.length, min = 0;
+                 
 					for(;i < l;i++) {
 						if(arNum[i] == Math.min.apply(null, arNum)){
 							return i;
@@ -352,33 +395,39 @@
 					var flow = new Flow({unitWidth:230,container:document.getElementById("flow1")});
 					var PAGE_CONTEXT = $({});
 					
-					var Loader = (function(option) {
+					var loader = (function(option) {
 						
-						var config,cache = [], recordNum = 0, cachedCount = 0., loading = false;
+						var config,cache = [], recordNum = 0, cachedCount = 0, cachedExData = {}, loading = false;
 					
 						// default value
 						var defaultConfig = {
-							initDataNum:20, 	/* amount of first feching data*/
-							increaseOffset:12,  /* get data when scroll */
+							initDataNum:25, 	/* amount of first feching data*/
+							increaseOffset:20,  /* get data when scroll */
 							cacheSize:100 		/* amount of cache data */
 						}
 					
 						config = $.extend({}, defaultConfig, option);
 						
-						function getLoadPromise(exData) {
-						
+						function getLoadPromise(exData ,clearFetchFlag) {
+								
+							// if is loading return null 
 							if(loading) {
 								return null;
 							}
 							
-							
-									
+							// clear cache and paging info
+							if(clearFetchFlag && clearFetchFlag == true) {
+								recordNum = 0;
+								cachedCount = 0;
+								cache = [];
+								cachedExData = exData;
+							} 
+						
+				
 							if(recordNum == 0) {
-								recordNum += config.initDataNum;
-								return requstProxy(0, config.initDataNum, exData);
-							} else {
-								recordNum += config.increaseOffset;
-								return requstProxy(recordNum, config.increaseOffset, exData);
+								return requstProxy(0, config.initDataNum, cachedExData);
+							} else {	
+								return requstProxy(recordNum, config.increaseOffset, cachedExData);
 							}
 	
 						}
@@ -390,7 +439,7 @@
 							// haven't cache enough data, get from server first	
 							if(from + offset > cachedCount) {
 								loading = true;
-								$.getJSON('test', {sn: from, on: offset}, function(data){
+								$.getJSON('getPhotos', $.extend({}, {sn: from, on: config.cacheSize}, exData), function(data){
 								
 									// cache data
 									cache = cache.concat(data);
@@ -398,8 +447,9 @@
 									
 									// resolve
 									promise.resolve(getCachedData(from, offset));
-
+									
 									//
+                                    recordNum += offset;
 									loading = false;
 								});
 								
@@ -408,6 +458,7 @@
 								promise.resolve(getCachedData(from, offset));
 								
 								//
+                              	recordNum += offset;
 								loading = false;
 							}
 							
@@ -423,47 +474,88 @@
 						
 					})();
 					
-					;
+					var tip = {
+						loadingTip: "Loading ...",
+						endOfDataTip: "No More Data",
+						elm: document.getElementById("tipBar"),
+						showLoading: function() {
+							if(!this.stableFlg) {
+								this.elm.innerHTML = this.loadingTip;
+							}
+							return this;
+						},
+						showEndOfDataTip: function() {
+							if(!this.stableFlg) {
+								this.elm.innerHTML = this.endOfDataTip;
+							}
+							return this;
+						},
+						setStableFlag: function(flg) {
+							this.stableFlg = flg;
+							return this;
+						},
+						stableFlg: false					
+					};
 					
-					PAGE_CONTEXT.on("fetchdata", function(){
-						var pms = Loader.getLoadPromise({kw:"狗"});
+					PAGE_CONTEXT.on("fetchdata", function(event){
+						var pms = loader.getLoadPromise();
+						
+						// null promise
 						if(!pms) {
 							return;
 						}
+						
 						$.when(pms).done(function(data){
+							if(data.length != 0) {
+								tip.setStableFlag(false).showLoading();
+							} else {
+								tip.showEndOfDataTip().setStableFlag(true);
+								return;
+							}
 							flow.loadData(data);
 						})
 						//var data = getFakeData(10);
 						//flow.loadData(data);
 					});
-					PAGE_CONTEXT.trigger("fetchdata");
 					
 					
-			
-					
-					
-					function getFakeData(num) {
-						var i = 0, arRet = [], unit;
-						for(i;i < num;i++) {
-							unit = {
-								width:230,
-								height:getRandomHeight(200,500),
-								src:"http://myst729.github.io/Waterfall/img/"+ (i + 1)+".jpg",
-								title:"this is fake No. " + i + " picture"
+					PAGE_CONTEXT.on("fetchnewdata", function(event, data){
+						var pms = loader.getLoadPromise({kw:data }, true);
+						// null promise
+						if(!pms) {
+							return;
+						}
+
+						$.when(pms).done(function(data){
+							if(data.length != 0) {
+								tip.setStableFlag(false).showLoading();
+							} else {
+								tip.showEndOfDataTip().setStableFlag(true);
+								return;
 							}
-							arRet.push(unit);
-						}
+							flow.reLoadData(data);
+						})
+						//var data = getFakeData(10);
+						//flow.loadData(data);
+					});
 					
-						return arRet;
-						
-						function getRandomHeight(min,offset) {
-							return min + Math.round(offset*(Math.random()));
-						}
-					}
-					
-					
+					PAGE_CONTEXT.trigger("fetchdata");
+				
 					function init() {
-						var reflowDelayHandler = (function() {
+					
+						// save search input and search btn
+						var searchInput = document.getElementById("searchInput"),
+							searchBtn = document.getElementById("searchBtn");
+					
+						var searchHandler = function(e) {
+							// bind enter key for convenience
+							if(e.type == "keyup" && e.keyCode != 13 ) {
+								return;
+							}
+							PAGE_CONTEXT.trigger("fetchnewdata", searchInput.value);
+						};
+						
+						var resizeDelayHandler = (function() {
 						var timeId;	
 							return function() {
 								clearTimeout(timeId);
@@ -492,22 +584,26 @@
 					
 				
 						var scrollHandler = function(){
+                          
 							var scrollHeight = document.documentElement.scrollHeight,
 								scrollTop = 0, offsetTop = 160;								
-							if(Util.isIE()){
-								scrollTop = document.documentElement.scrollTop;
+                            if(Util.isWebKit()){
+                              	scrollTop = document.body.scrollTop;
+								
 							} else {
-								scrollTop = document.body.scrollTop;
+								scrollTop = document.documentElement.scrollTop;;
 							}
-							if(offsetTop + flow.getMinColHeight() < scrollTop + document.documentElement.clientHeight) {
-							   PAGE_CONTEXT.trigger("fetchdata");
+                          
+							if(offsetTop + flow.getMinColHeight() < scrollTop + document.documentElement.clientHeight) {							  
+								  PAGE_CONTEXT.trigger("fetchdata");							
 							}					
 						}
-					
-					
-					
-						addEvent(window, 'resize', reflowDelayHandler);
+		
+						addEvent(window, 'resize', resizeDelayHandler);
 						addEvent(window, 'scroll', scrollHandler);
+						addEvent(searchBtn, 'click', searchHandler);
+						addEvent(searchInput, 'keyup', searchHandler);
+						
 					}
 					
 					
