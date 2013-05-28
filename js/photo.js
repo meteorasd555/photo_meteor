@@ -89,22 +89,11 @@ $(function(){
 			endOfDataTip: "No More Data",
 			elm: document.getElementById("tipBar"),
 			showLoading: function() {
-				if(!this.stableFlg) {
-					this.elm.innerHTML = this.loadingTip;
-				}
-				return this;
+				this.elm.innerHTML = this.loadingTip;
 			},
 			showEndOfDataTip: function() {
-				if(!this.stableFlg) {
-					this.elm.innerHTML = this.endOfDataTip;
-				}
-				return this;
-			},
-			setStableFlag: function(flg) {
-				this.stableFlg = flg;
-				return this;
-			},
-			stableFlg: false					
+				this.elm.innerHTML = this.endOfDataTip;
+			}					
 		};
 		
 		PAGE_CONTEXT.on("fetchdata", function(event){
@@ -117,9 +106,9 @@ $(function(){
 			
 			$.when(pms).done(function(data){
 				if(data.length != 0) {
-					tip.setStableFlag(false).showLoading();
+					tip.showLoading();
 				} else {
-					tip.showEndOfDataTip().setStableFlag(true);
+					tip.showEndOfDataTip();
 					return;
 				}
 				flow.loadData(data);
@@ -138,9 +127,9 @@ $(function(){
 
 			$.when(pms).done(function(data){
 				if(data.length != 0) {
-					tip.setStableFlag(false).showLoading();
+					tip.showLoading();
 				} else {
-					tip.showEndOfDataTip().setStableFlag(true);
+					tip.showEndOfDataTip();
 					return;
 				}
 				flow.reLoadData(data);
