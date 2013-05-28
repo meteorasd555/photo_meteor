@@ -1,4 +1,21 @@
-html,body {
-	height:100%;
-	font: 12px/1.5 "\5b8b\4f53";
+.w980 {
+    width:980px;
+}
+.w1230 {
+	width:1230px;
+}	
+.ft24 {
+	font-size:24px;
+}
+.ft14 {
+	font-size:14px;
+}
+.ftAcme {
+	font-family:'acme';
+}
+.ftBold {
+	font-weight:bold;
+}
+.mb20 {
+	margin-bottom:20px;
 }
