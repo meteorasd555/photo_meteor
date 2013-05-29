@@ -23,7 +23,8 @@
 		}
 		.search {
 			height:30px;
-			line-height:30px;
+			*line-height:30px;
+            line-height:30px\9;
 			width:350px;
 			text-indent:1em;
 			vertical-align:middle;
