@@ -109,14 +109,11 @@ $(function(){
 					tip.showLoading();
 				} else {
 					tip.showEndOfDataTip();
-					return;
 				}
 				flow.loadData(data);
 			})
-			
 		});
-		
-		
+	
 		PAGE_CONTEXT.on("fetchnewdata", function(event, data){
 			var pms = loader.getLoadPromise({kw:data }, true);
 			// null promise
@@ -129,14 +126,13 @@ $(function(){
 					tip.showLoading();
 				} else {
 					tip.showEndOfDataTip();
-					return;
 				}
 				flow.reLoadData(data);
 			})
 		
 		});
 		
-		PAGE_CONTEXT.trigger("fetchdata");
+		
 	
 		function init() {
 		
@@ -177,8 +173,7 @@ $(function(){
 					};
 				}
 				addEvent(element, type, handler);
-			};
-		
+			};		
 	
 			var scrollHandler = function(){
 			  
@@ -201,9 +196,10 @@ $(function(){
 			addEvent(searchBtn, 'click', searchHandler);
 			addEvent(searchInput, 'keyup', searchHandler);
 			
+			// fetch data on page loading
+			PAGE_CONTEXT.trigger("fetchdata");
 		}
-		
-		
+
 		return {
 			init:init
 		}
