@@ -83,7 +83,7 @@ Flow.prototype = {
 	},
 	adjustCells: function(arCells) {
 	
-		var _getMinKey = this._getMinKey, len = arCells.length,insertColIdx = 0, cell,  config = this.getConfig(), crtH, docFrag = document.createDocumentFragment();
+		var _getMinKey = this._getMinKey, len = arCells.length,insertColIdx = 0, cell,  config = this.getConfig(), crtH, clientHeight, docFrag = document.createDocumentFragment();
 		
 		for(var i=0;i < len; i++) {	
 			cell = arCells[i];	
@@ -109,9 +109,15 @@ Flow.prototype = {
 
 			// deal with top
 			cell.style.top = crtH + "px";	
-			//TODO Caution: this operation cost performance issues, 
-			//clientHeight should get only once, and store for further usege
-			this.colHeightArray[insertColIdx]  = crtH + cell.clientHeight + config.heightGap;
+			
+	        	// store the clientHeight into an attribute of its owner element
+			if(cell.getAttribute("data-clientHeight") == null) {
+			   cell.setAttribute("data-clientHeight", clientHeight = cell.clientHeight)
+			} else {
+				clientHeight = cell.getAttribute("data-clientHeight");
+			}
+			
+			this.colHeightArray[insertColIdx]  = crtH + Number(clientHeight) + config.heightGap;
 			
 			// deal with left
 			var leftTp = insertColIdx *( config.unitWidth + config.widthGap) + config.widthGap;
