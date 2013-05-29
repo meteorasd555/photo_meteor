@@ -108,7 +108,9 @@ Flow.prototype = {
 			cell.style.position = "absolute";
 
 			// deal with top
-			cell.style.top = crtH + "px";				
+			cell.style.top = crtH + "px";	
+			//TODO Caution: this operation cost performance issues, 
+			//clientHeight should get only once, and store for further usege
 			this.colHeightArray[insertColIdx]  = crtH + cell.clientHeight + config.heightGap;
 			
 			// deal with left
