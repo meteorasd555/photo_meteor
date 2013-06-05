@@ -16,3 +16,8 @@ TODO LIST
 3. add more funcitonality, and Reconstruction
 4. add responsive support in IE 678
 5. TBD
+
+
+！
+ it is deployed in My BAE server:
+ http://3.meteorasd555.duapp.com/
