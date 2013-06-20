@@ -12,7 +12,7 @@ a simple waterfall demo
 TODO LIST
 
 1. can remove jquery lib by implement some dependent function to optimize the page loading
-2. flow.js has some performance trouble when loading much more data(can be optimized, but limited).
+2. flow.js has some performance trouble when loading much more data(can be optimized, but limited).   DONE
 3. add more funcitonality, and Reconstruction
 4. add responsive support in IE 678
 5. TBD
